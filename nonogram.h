@@ -9,9 +9,18 @@
 
 #define TABLE_SIZE 9
 
+#define INT_TABLE 1
+#define CHAR_TABLE 0
+
+#define TABLE_TYPE CHAR_TABLE
+
 struct nonogram_table
 {
+#if TABLE_TYPE == INT_TABLE
 	int table[TABLE_SIZE][TABLE_SIZE];
+#elif TABLE_TYPE == CHAR_TABLE 
+	char table[TABLE_SIZE][TABLE_SIZE];
+#endif // TABLE_TYPE == INT_TABLE
 	int vertical_values[TABLE_SIZE];
 	int horizontal_values[TABLE_SIZE];
 };
@@ -27,7 +36,11 @@ public:
 			tbl.horizontal_values[i] = 0;
 			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
 			{
+#if TABLE_TYPE == INT_TABLE
 				tbl.table[i][j] = 0;
+#elif TABLE_TYPE == CHAR_TABLE 
+				tbl.table[i][j] = ' ';
+#endif // TABLE_TYPE == INT_TABLE
 			}
 		}
 		{
@@ -47,6 +60,7 @@ public:
 		copy_arr(tbl.vertical_values, tvv);
 		copy_arr(tbl.horizontal_values, thv);
 
+
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 		{
 			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
@@ -55,7 +69,11 @@ public:
 				{
 					tvv[j]--;
 					thv[i]--;
+#if TABLE_TYPE == INT_TABLE
 					tbl.table[i][j] = 1;
+#elif TABLE_TYPE == CHAR_TABLE 
+					tbl.table[i][j] = 'x';
+#endif // TABLE_TYPE == INT_TABLE
 				}
 			}
 		}
@@ -66,6 +84,7 @@ public:
 	{
 		play_again:
 		init();
+#if TABLE_TYPE == INT_TABLE
 		int player_table[TABLE_SIZE][TABLE_SIZE];
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 		{
@@ -74,6 +93,16 @@ public:
 				player_table[i][j] = 0;
 			}
 		}
+#elif TABLE_TYPE == CHAR_TABLE
+		char player_table[TABLE_SIZE][TABLE_SIZE];
+		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
+		{
+			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
+			{
+				player_table[i][j] = ' ';
+			}
+		}
+#endif
 		update_table(player_table, 1 , 1);
 		int i = 0, j = 0;
 		while (char ch = get_input())
@@ -97,19 +126,25 @@ public:
 				else j = 0;
 				break;
 			case 32:
+#if TABLE_TYPE == INT_TABLE
 				if (player_table[i][j] == 1) player_table[i][j] = 0;
 				else player_table[i][j] = 1;
+#elif TABLE_TYPE == CHAR_TABLE 
+				if (player_table[i][j] == 'x') player_table[i][j] = ' ';
+				else player_table[i][j] = 'x';
+#endif // TABLE_TYPE == INT_TABLE
+
 				break;
 			case 13:
 				if (check(player_table))
 				{
-					std::cout << "\n\t\tYOU WON!";
+					std::cout << "\nYOU WON!";
 				}
 				else
 				{
-					std::cout << "\n\t\tYOU LOST!";
+					std::cout << "\nYOU LOST!";
 				}
-				std::cout << "\n\np - play again\n\Esc - exit";
+				std::cout << "\np - play again\n\Esc - exit";
 				while (char decision = get_input())
 				{
 					if (toupper(decision) == 'P')
@@ -138,7 +173,11 @@ public:
 	}
 
 private:
+#if TABLE_TYPE == INT_TABLE
 	bool check(int player_input[][TABLE_SIZE])
+#elif TABLE_TYPE == CHAR_TABLE
+	bool check(char player_input[][TABLE_SIZE])
+#endif // 
 	{
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 		{
@@ -173,8 +212,11 @@ private:
 			dest[i] = src[i];
 		}
 	}
-
+#if TABLE_TYPE == INT_TABLE
 	void update_table(int player_table[][TABLE_SIZE], int line, int column)
+#elif TABLE_TYPE == CHAR_TABLE
+	void update_table(char player_table[][TABLE_SIZE], int line, int column)
+#endif // TABLE_TYPE == INT_TABLE
 	{
 		system("cls");
 		std::cout << "    ";
@@ -197,9 +239,9 @@ private:
 			}
 			std::cout << "\n\n";
 		}
-		std::cout << "\n\n";
+		std::cout << "\n";
 		std::cout << "\tCONTROLS\nMove up: w\nMove down: s\nMove left: a\nMove right: d\nMark - remark: space\nSubmit: Enter\n\n";
-		std::cout << line << ". line " << column << ". column\n";
+		std::cout << line << ". line " << column << ". column";
 	}
 
 	char get_input()
@@ -217,20 +259,32 @@ private:
 
 	void mix()
 	{
+		auto swap = [](int& left, int& right)
+		{
+			int temp = left;
+			left = right;
+			right = temp;
+		};
+#if TABLE_TYPE == CHAR_TABLE
+		auto swapci = [](char& left, char& right)
+		{
+			char temp = left;
+#elif TABLE_TYPE == INT_TABLE
+		auto swapci = [](int& left, int& right)
+		{
+			int temp = left;
+#endif
+			left = right;
+			right = temp;
+		};
 		for (uint32_t i = 0; i < TABLE_SIZE * 2; ++i)
 		{
 			int rv1 = rval() - 1;
 			int rv2 = rval() - 1;
-			auto swap = [](int& left, int& right)
-			{
-				int temp = left;
-				left = right;
-				right = temp;
-			};
 			swap(tbl.horizontal_values[rv1], tbl.horizontal_values[rv2]);
 			for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 			{
-				swap(tbl.table[rv1][i], tbl.table[rv2][i]);
+				swapci(tbl.table[rv1][i], tbl.table[rv2][i]);
 			}
 		}
 	}
