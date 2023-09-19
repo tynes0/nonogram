@@ -1,12 +1,12 @@
 #pragma once
 
 #include "rand.h"
-#include <ctime>
-#include <cstdint>
 #include <conio.h>
 
 #define charize(x) #@x
 
+
+// recomended max table size is 9
 #define TABLE_SIZE 9
 
 #define INT_TABLE 1
@@ -45,7 +45,7 @@ public:
 		}
 		{
 			int temp[TABLE_SIZE];
-			copy_arr(tbl.vertical_values, temp);
+			memcpy(temp, tbl.vertical_values, sizeof(tbl.vertical_values));
 			for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 			{
 				for (uint32_t j = 0; j < TABLE_SIZE; ++j)
@@ -57,8 +57,8 @@ public:
 		}
 		int tvv[TABLE_SIZE];
 		int thv[TABLE_SIZE];
-		copy_arr(tbl.vertical_values, tvv);
-		copy_arr(tbl.horizontal_values, thv);
+		memcpy(tvv, tbl.vertical_values, sizeof(tbl.vertical_values));
+		memcpy(thv, tbl.horizontal_values, sizeof(tbl.horizontal_values));
 
 
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
@@ -205,13 +205,6 @@ private:
 		}
 	}
 
-	void copy_arr(int* src, int* dest)
-	{
-		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
-		{
-			dest[i] = src[i];
-		}
-	}
 #if TABLE_TYPE == INT_TABLE
 	void update_table(int player_table[][TABLE_SIZE], int line, int column)
 #elif TABLE_TYPE == CHAR_TABLE
@@ -290,6 +283,5 @@ private:
 	}
 
 private:
-public:
 	nonogram_table tbl;
 };
