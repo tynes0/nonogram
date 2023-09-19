@@ -5,22 +5,30 @@
 
 #define charize(x) #@x
 
-
 // recomended max table size is 9
 #define TABLE_SIZE 9
 
 #define INT_TABLE 1
 #define CHAR_TABLE 0
 
-#define TABLE_TYPE CHAR_TABLE
+#define TABLE_TYPE INT_TABLE
+
+#if (TABLE_TYPE == CHAR_TABLE)
+typedef char nonogram_var_t;
+static constexpr char MARKED_VAR = 'x';
+static constexpr char UNMARKED_VAR = ' ';
+#elif (TABLE_TYPE == INT_TABLE)
+typedef int nonogram_var_t;
+static constexpr int MARKED_VAR = 1;
+static constexpr int UNMARKED_VAR = 0;
+#else
+#error this game only support CHAR_TABLE and INT_TABLEs
+#endif // TABLE_TYPE == CHAR_TABLE
+
 
 struct nonogram_table
 {
-#if TABLE_TYPE == INT_TABLE
-	int table[TABLE_SIZE][TABLE_SIZE];
-#elif TABLE_TYPE == CHAR_TABLE 
-	char table[TABLE_SIZE][TABLE_SIZE];
-#endif // TABLE_TYPE == INT_TABLE
+	nonogram_var_t table[TABLE_SIZE][TABLE_SIZE];
 	int vertical_values[TABLE_SIZE];
 	int horizontal_values[TABLE_SIZE];
 };
@@ -36,11 +44,7 @@ public:
 			tbl.horizontal_values[i] = 0;
 			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
 			{
-#if TABLE_TYPE == INT_TABLE
-				tbl.table[i][j] = 0;
-#elif TABLE_TYPE == CHAR_TABLE 
-				tbl.table[i][j] = ' ';
-#endif // TABLE_TYPE == INT_TABLE
+				tbl.table[i][j] = UNMARKED_VAR;
 			}
 		}
 		{
@@ -69,11 +73,7 @@ public:
 				{
 					tvv[j]--;
 					thv[i]--;
-#if TABLE_TYPE == INT_TABLE
-					tbl.table[i][j] = 1;
-#elif TABLE_TYPE == CHAR_TABLE 
-					tbl.table[i][j] = 'x';
-#endif // TABLE_TYPE == INT_TABLE
+					tbl.table[i][j] = MARKED_VAR;
 				}
 			}
 		}
@@ -84,25 +84,14 @@ public:
 	{
 		play_again:
 		init();
-#if TABLE_TYPE == INT_TABLE
-		int player_table[TABLE_SIZE][TABLE_SIZE];
+		nonogram_var_t player_table[TABLE_SIZE][TABLE_SIZE];
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 		{
 			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
 			{
-				player_table[i][j] = 0;
+				player_table[i][j] = UNMARKED_VAR;
 			}
 		}
-#elif TABLE_TYPE == CHAR_TABLE
-		char player_table[TABLE_SIZE][TABLE_SIZE];
-		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
-		{
-			for (uint32_t j = 0; j < TABLE_SIZE; ++j)
-			{
-				player_table[i][j] = ' ';
-			}
-		}
-#endif
 		update_table(player_table, 1 , 1);
 		int i = 0, j = 0;
 		while (char ch = get_input())
@@ -126,14 +115,8 @@ public:
 				else j = 0;
 				break;
 			case 32:
-#if TABLE_TYPE == INT_TABLE
-				if (player_table[i][j] == 1) player_table[i][j] = 0;
-				else player_table[i][j] = 1;
-#elif TABLE_TYPE == CHAR_TABLE 
-				if (player_table[i][j] == 'x') player_table[i][j] = ' ';
-				else player_table[i][j] = 'x';
-#endif // TABLE_TYPE == INT_TABLE
-
+				if (player_table[i][j] == MARKED_VAR) player_table[i][j] = UNMARKED_VAR;
+				else player_table[i][j] = MARKED_VAR;
 				break;
 			case 13:
 				if (check(player_table))
@@ -173,11 +156,7 @@ public:
 	}
 
 private:
-#if TABLE_TYPE == INT_TABLE
-	bool check(int player_input[][TABLE_SIZE])
-#elif TABLE_TYPE == CHAR_TABLE
-	bool check(char player_input[][TABLE_SIZE])
-#endif // 
+	bool check(nonogram_var_t player_input[][TABLE_SIZE])
 	{
 		for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 		{
@@ -205,11 +184,7 @@ private:
 		}
 	}
 
-#if TABLE_TYPE == INT_TABLE
-	void update_table(int player_table[][TABLE_SIZE], int line, int column)
-#elif TABLE_TYPE == CHAR_TABLE
-	void update_table(char player_table[][TABLE_SIZE], int line, int column)
-#endif // TABLE_TYPE == INT_TABLE
+	void update_table(nonogram_var_t player_table[][TABLE_SIZE], int line, int column)
 	{
 		system("cls");
 		std::cout << "    ";
@@ -252,32 +227,15 @@ private:
 
 	void mix()
 	{
-		auto swap = [](int& left, int& right)
-		{
-			int temp = left;
-			left = right;
-			right = temp;
-		};
-#if TABLE_TYPE == CHAR_TABLE
-		auto swapci = [](char& left, char& right)
-		{
-			char temp = left;
-#elif TABLE_TYPE == INT_TABLE
-		auto swapci = [](int& left, int& right)
-		{
-			int temp = left;
-#endif
-			left = right;
-			right = temp;
-		};
+
 		for (uint32_t i = 0; i < TABLE_SIZE * 2; ++i)
 		{
 			int rv1 = rval() - 1;
 			int rv2 = rval() - 1;
-			swap(tbl.horizontal_values[rv1], tbl.horizontal_values[rv2]);
+			std::swap(tbl.horizontal_values[rv1], tbl.horizontal_values[rv2]);
 			for (uint32_t i = 0; i < TABLE_SIZE; ++i)
 			{
-				swapci(tbl.table[rv1][i], tbl.table[rv2][i]);
+				std::swap(tbl.table[rv1][i], tbl.table[rv2][i]);
 			}
 		}
 	}
